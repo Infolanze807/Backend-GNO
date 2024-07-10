@@ -67,6 +67,21 @@ app.get('/wallet/:address/:password', async (req, res) => {
     }
   });
 
+  app.get('/wallet/:password', async (req, res) => {
+    const { password } = req.params;
+  
+    try {
+      const walletData = await Wallet.findOne({ password });
+      if (!walletData) {
+        return res.status(404).send('Wallet not found.');
+      }
+      res.json(walletData);
+    } catch (error) {
+      console.error('Error fetching wallet data:', error);
+      res.status(500).send('Error fetching wallet data.');
+    }
+  }); 
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
