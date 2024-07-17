@@ -1,32 +1,23 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const cors = require('cors');
+const express = require("express");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
 
 const app = express();
 const port = 5000;
 
-// // Middleware
-// app.use(bodyParser.json());
-// app.use(cors());
-
 // Middleware
 app.use(bodyParser.json());
-
 const corsOptions = {
   origin: 'https://gno-f-rontend.vercel.app',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200 
 };
-
-// const corsOptions = {
-//   origin: 'http://localhost:3000',
-//   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-// };
-
 app.use(cors(corsOptions));
 
 // MongoDB connection
-const mongoURI = 'mongodb+srv://kmbmevada2343:pro2wnEJusERya71@gnosiswallet.oq1wvwv.mongodb.net/Users';
+const mongoURI =
+  "mongodb+srv://kmbmevada2343:pro2wnEJusERya71@gnosiswallet.oq1wvwv.mongodb.net/Users";
 mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -38,54 +29,60 @@ const walletSchema = new mongoose.Schema({
   password: String,
 });
 
-const Wallet = mongoose.model('Wallet', walletSchema);
+const Wallet = mongoose.model("Wallet", walletSchema);
 
-app.post('/wallet', async (req, res) => {
+app.post("/wallet", async (req, res) => {
   const { address, encryptedPrivateKey, password } = req.body;
 
-  const newWallet = new Wallet({
-    address,
-    encryptedPrivateKey,
-    password,
-  });
-
   try {
-    await newWallet.save();
-    res.status(201).send('Wallet created successfully!');
+    const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
+
+    const newWallet = new Wallet({
+      address,
+      encryptedPrivateKey,
+      password: hashedPassword,
+    });
+
+    const savedWallet = await newWallet.save();
+
+    res.status(201).json({
+      message: "Wallet created successfully!",
+      wallet: {
+        address: savedWallet.address,
+        _id: savedWallet._id,
+      },
+    });
   } catch (error) {
-    res.status(400).send('Error creating wallet.');
+    console.error("Error creating wallet:", error);
+    res.status(400).send("Error creating wallet.");
   }
 });
 
-app.get('/wallet/:address/:password', async (req, res) => {
-    const { address, password } = req.params;
-  
-    try {
-      const walletData = await Wallet.findOne({ address, password });
-      if (!walletData) {
-        return res.status(404).send('Wallet not found.');
-      }
-      res.json(walletData);
-    } catch (error) {
-      console.error('Error fetching wallet data:', error);
-      res.status(500).send('Error fetching wallet data.');
-    }
-  });
+app.get("/wallet/:address/:password", async (req, res) => {
+  const { address, password } = req.params;
+  console.log("API called For:","Wallet:",address, "password:",password);
 
-  app.get('/wallet/:password', async (req, res) => {
-    const { password } = req.params;
-  
-    try {
-      const walletData = await Wallet.findOne({ password });
-      if (!walletData) {
-        return res.status(404).send('Wallet not found.');
-      }
-      res.json(walletData);
-    } catch (error) {
-      console.error('Error fetching wallet data:', error);
-      res.status(500).send('Error fetching wallet data.');
+  try {
+    const WalletData = await Wallet.findOne({ address });
+    if (!WalletData) {
+      return res.status(404).json({ message: "Address not found" });
     }
-  }); 
+
+    const isPasswordMatch = await bcrypt.compare(password, WalletData.password);
+    if (isPasswordMatch) {
+      res.json({
+        success: true,
+        address: WalletData.address,
+        encryptedPrivateKey: WalletData.encryptedPrivateKey,
+      });
+    } else {
+      res.status(401).json({ message: "Wrong password" });
+    }
+  } catch (error) {
+    console.error("Error during authentication:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
