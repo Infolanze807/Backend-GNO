@@ -15,6 +15,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+app.get("/", (req, res) => res.send("Gno Wallet Backend"));
+
 // MongoDB connection
 const mongoURI =
   "mongodb+srv://kmbmevada2343:pro2wnEJusERya71@gnosiswallet.oq1wvwv.mongodb.net/Users";
