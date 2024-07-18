@@ -7,12 +7,13 @@ const bcrypt = require("bcrypt");
 const app = express();
 const port = 5000;
 
-// Middleware
 app.use(bodyParser.json());
+
 const corsOptions = {
-  origin: 'https://gno-f-rontend.vercel.app',
+  origin: process.env.REACT_APP_FRONTEND,
   optionsSuccessStatus: 200 
 };
+
 app.use(cors(corsOptions));
 
 app.get("/", (req, res) => res.send("Gno Wallet Backend"));
