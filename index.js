@@ -16,8 +16,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.get("/", (req, res) => res.send("Gno Wallet Backend"));
-
 // MongoDB connection
 const mongoURI =
   "mongodb+srv://kmbmevada2343:pro2wnEJusERya71@gnosiswallet.oq1wvwv.mongodb.net/Users";
@@ -87,6 +85,8 @@ app.get("/wallet/:address/:password", async (req, res) => {
   }
 });
 
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
