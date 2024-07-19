@@ -32,6 +32,8 @@ const walletSchema = new mongoose.Schema({
 
 const Wallet = mongoose.model("Wallet", walletSchema);
 
+app.get("/", (req, res) => res.send("GNO BACKEND RUN..."));
+
 app.post("/wallet", async (req, res) => {
   const { address, encryptedPrivateKey, password } = req.body;
 
