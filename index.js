@@ -10,7 +10,7 @@ const port = 5000;
 app.use(bodyParser.json());
 
 const corsOptions = {
-  origin: process.env.REACT_APP_FRONTEND,
+  origin: 'http://localhost:3000',
   optionsSuccessStatus: 200 
 };
 
