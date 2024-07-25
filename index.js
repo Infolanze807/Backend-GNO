@@ -5,6 +5,7 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const CryptoJS = require('crypto-js');
 const { ethers } = require('ethers');
+const { Transaction } = require("ethers");
 
 const app = express();
 const port = 5000;
@@ -99,30 +100,30 @@ app.post("/wallet", async (req, res) => {
 });
 
 app.get("/wallet/:address/:password", async (req, res) => {
-    const { address, password } = req.params;
-    console.log("API called For:","Wallet:",address, "password:",password);
-  
-    try {
-      const WalletData = await Wallet.findOne({ address });
-      if (!WalletData) {
-        return res.status(404).json({ message: "Address not found" });
-      }
-  
-      const isPasswordMatch = await bcrypt.compare(password, WalletData.password);
-      if (isPasswordMatch) {
-        res.json({
-          success: true,
-          address: WalletData.address,
-          encryptedPrivateKey: WalletData.encryptedPrivateKey,
-        });
-      } else {
-        res.status(401).json({ message: "Wrong password" });
-      }
-    } catch (error) {
-      console.error("Error during authentication:", error);
-      res.status(500).json({ message: "Internal server error" });
+  const { address, password } = req.params;
+  console.log("API called For:","Wallet:",address, "password:",password);
+
+  try {
+    const WalletData = await Wallet.findOne({ address });
+    if (!WalletData) {
+      return res.status(404).json({ message: "Address not found" });
     }
-  });
+
+    const isPasswordMatch = await bcrypt.compare(password, WalletData.password);
+    if (isPasswordMatch) {
+      res.status(200).json({
+        success: true,
+        address: WalletData.address,
+        encryptedPrivateKey: WalletData.encryptedPrivateKey,
+      });
+    } else {
+      res.status(401).json({ message: "Wrong password" });
+    }
+  } catch (error) {
+    console.error("Error during authentication:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 app.post('/validate-seed-phrase', (req, res) => {
   const { seedPhrase } = req.body;
@@ -130,6 +131,52 @@ app.post('/validate-seed-phrase', (req, res) => {
     res.json({ valid: true });
   } else {
     res.status(400).json({ valid: false, message: 'Invalid seed phrase.' });
+  }
+});
+
+app.post('/wallet/transaction', async (req, res) => {
+  const { from, to, txHash, amount } = req.body;
+
+  try {
+    // Find the wallet by the `from` address
+    const wallet = await Wallet.findOne({ address: from });
+
+    if (!wallet) {
+      return res.status(404).json({ error: 'Wallet not found' });
+    }
+
+    // Add the transaction to the wallet's transaction array
+    wallet.transaction.push({ from, to, txHash, amount });
+
+    // Save the updated wallet document
+    await wallet.save();
+
+    res.status(200).json({ message: 'Transaction saved successfully' });
+  } catch (error) {
+    console.error("Error saving transaction:", error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/wallet/transactions/:address', async (req, res) => {
+  const { address } = req.params;
+
+  console.log("hello", address)
+  
+
+  try {
+    // Find the wallet by address
+    const wallet = await Wallet.findOne({ address });
+
+    if (!wallet) {
+      return res.status(404).json({ error: 'Wallet not found' });
+    }
+
+    // Return the transactions array
+    res.status(200).json(wallet.transaction);
+  } catch (error) {
+    console.error("Error retrieving transactions:", error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
