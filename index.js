@@ -394,6 +394,17 @@ app.get("/wallet/:address/:password", async (req, res) => {
     }
   });
 
+  app.get("/wallet/exchange-balance", async (req, res) => {
+    try {
+      const response = await axios.get(
+        "https://api.diadata.org/v1/assetQuotation/Ethereum/0x6810e776880C02933D47DB1b9fc05908e5386b96"
+      );
+      res.json(response.data);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
 
 
 app.listen(port, () => {
