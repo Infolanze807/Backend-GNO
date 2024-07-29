@@ -110,34 +110,6 @@ app.post("/wallet", async (req, res) => {
   }
 });
 
-app.get("/wallet/:address/:password", async (req, res) => {
-  const { address, password } = req.params;
-  console.log("API called For:", "Wallet:", address, "password:", password);
-
-  try {
-    const WalletData = await Wallet.findOne({ address });
-    if (!WalletData) {
-      return res.status(404).json({ message: "Address not found" });
-    }
-
-    const isPasswordMatch = await bcrypt.compare(password, WalletData.password);
-    if (isPasswordMatch) {
-      res.status(200).json({
-        success: true,
-        address: WalletData.address,
-        encryptedPrivateKey: WalletData.encryptedPrivateKey,
-      });
-    } else {
-      res.status(401).json({ message: "Wrong password" });
-    }
-  } catch (error) {
-    console.error("Error during authentication:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-
-
 app.post("/validate-seed-phrase", (req, res) => {
   const { seedPhrase } = req.body;
   if (seedPhrase && seedPhrase.split(" ").length === 12) {
@@ -191,6 +163,34 @@ app.get("/wallet/transactions/:address", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.get("/wallet/:address/:password", async (req, res) => {
+  const { address, password } = req.params;
+  console.log("API called For:", "Wallet:", address, "password:", password);
+
+  try {
+    const WalletData = await Wallet.findOne({ address });
+    if (!WalletData) {
+      return res.status(404).json({ message: "Address not found" });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, WalletData.password);
+    if (isPasswordMatch) {
+      res.status(200).json({
+        success: true,
+        address: WalletData.address,
+        encryptedPrivateKey: WalletData.encryptedPrivateKey,
+      });
+    } else {
+      res.status(401).json({ message: "Wrong password" });
+    }
+  } catch (error) {
+    console.error("Error during authentication:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 
 app.get("/wallet/exchange-rate", async (req, res) => {
   try {
