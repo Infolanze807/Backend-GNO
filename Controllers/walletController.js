@@ -3,6 +3,34 @@ const { ethers } = require("ethers");
 const Wallet = require('../Models/walletmodel');
 // const { encryptPrivateKey, decryptPrivateKey } = require('../config/crypto');
 
+// const createOrUpdateWallet = async (req, res) => {
+//   const { address, encryptedPrivateKey, password } = req.body;
+
+//   try {
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const existingWallet = await Wallet.findOne({ address });
+
+//     if (existingWallet) {
+//       existingWallet.password = hashedPassword;
+//       await existingWallet.save();
+//       res.status(200).json({
+//         message: "Password updated successfully!",
+//         wallet: { address: existingWallet.address, _id: existingWallet._id },
+//       });
+//     } else {
+//       const newWallet = new Wallet({ address, encryptedPrivateKey, password: hashedPassword });
+//       const savedWallet = await newWallet.save();
+//       res.status(201).json({
+//         message: "Wallet created successfully!",
+//         wallet: { address: savedWallet.address, _id: savedWallet._id },
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error creating/updating wallet:", error);
+//     res.status(400).send("Error creating/updating wallet.");
+//   }
+// };
+
 const createOrUpdateWallet = async (req, res) => {
   const { address, encryptedPrivateKey, password } = req.body;
 
@@ -12,9 +40,10 @@ const createOrUpdateWallet = async (req, res) => {
 
     if (existingWallet) {
       existingWallet.password = hashedPassword;
+      existingWallet.encryptedPrivateKey = encryptedPrivateKey; // Update the encrypted private key
       await existingWallet.save();
       res.status(200).json({
-        message: "Password updated successfully!",
+        message: "Wallet updated successfully!",
         wallet: { address: existingWallet.address, _id: existingWallet._id },
       });
     } else {
