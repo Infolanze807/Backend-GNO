@@ -15,7 +15,9 @@ const corsOptions = {
   origin: process.env.REACT_APP_FRONTEND,
   optionsSuccessStatus: 200,
 };
-console.log(corsOptions.origin)
+// console.log(corsOptions.origin)
+
+app.get("/", (req, res) => res.send("GNO BACKEND RUN..."));
 
 app.use(cors(corsOptions));
 
